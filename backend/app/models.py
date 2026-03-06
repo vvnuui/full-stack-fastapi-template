@@ -54,6 +54,10 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    tags: list["Tag"] = Relationship(back_populates="owner", cascade_delete=True)
+    contacts: list["Contact"] = Relationship(back_populates="owner", cascade_delete=True)
+    events: list["Event"] = Relationship(back_populates="owner", cascade_delete=True)
+    notes: list["Note"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -127,3 +131,167 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# ==================== Tag Model ====================
+class TagBase(SQLModel):
+    name: str = Field(min_length=1, max_length=50)
+    color: str = Field(default="#3b82f6", max_length=7)
+
+
+class TagCreate(TagBase):
+    pass
+
+
+class TagUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=50)
+    color: str | None = Field(default=None, max_length=7)
+
+
+class Tag(TagBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner: User | None = Relationship(back_populates="tags")
+
+
+class TagPublic(TagBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class TagsPublic(SQLModel):
+    data: list[TagPublic]
+    count: int
+
+
+# ==================== Contact Model ====================
+class ContactBase(SQLModel):
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    email: EmailStr | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    company: str | None = Field(default=None, max_length=200)
+    position: str | None = Field(default=None, max_length=200)
+    address: str | None = Field(default=None, max_length=500)
+    notes: str | None = Field(default=None, max_length=2000)
+    is_favorite: bool = False
+
+
+class ContactCreate(ContactBase):
+    pass
+
+
+class ContactUpdate(SQLModel):
+    first_name: str | None = Field(default=None, min_length=1, max_length=100)
+    last_name: str | None = Field(default=None, max_length=100)
+    email: EmailStr | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=50)
+    company: str | None = Field(default=None, max_length=200)
+    position: str | None = Field(default=None, max_length=200)
+    address: str | None = Field(default=None, max_length=500)
+    notes: str | None = Field(default=None, max_length=2000)
+    is_favorite: bool | None = None
+
+
+class Contact(ContactBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner: User | None = Relationship(back_populates="contacts")
+
+
+class ContactPublic(ContactBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class ContactsPublic(SQLModel):
+    data: list[ContactPublic]
+    count: int
+
+
+# ==================== Event Model ====================
+class EventBase(SQLModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    event_date: datetime | None = None
+    location: str | None = Field(default=None, max_length=500)
+    status: str = Field(default="upcoming", max_length=20)
+
+
+class EventCreate(EventBase):
+    pass
+
+
+class EventUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    event_date: datetime | None = None
+    location: str | None = Field(default=None, max_length=500)
+    status: str | None = Field(default=None, max_length=20)
+
+
+class Event(EventBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner: User | None = Relationship(back_populates="events")
+
+
+class EventPublic(EventBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class EventsPublic(SQLModel):
+    data: list[EventPublic]
+    count: int
+
+
+# ==================== Note Model ====================
+class NoteBase(SQLModel):
+    title: str = Field(min_length=1, max_length=200)
+    content: str | None = Field(default=None, max_length=10000)
+    category: str | None = Field(default=None, max_length=100)
+    is_pinned: bool = False
+
+
+class NoteCreate(NoteBase):
+    pass
+
+
+class NoteUpdate(SQLModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    content: str | None = Field(default=None, max_length=10000)
+    category: str | None = Field(default=None, max_length=100)
+    is_pinned: bool | None = None
+
+
+class Note(NoteBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner: User | None = Relationship(back_populates="notes")
+
+
+class NotePublic(NoteBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class NotesPublic(SQLModel):
+    data: list[NotePublic]
+    count: int

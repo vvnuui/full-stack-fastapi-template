@@ -4,7 +4,21 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.models import (
+    Contact,
+    ContactCreate,
+    Event,
+    EventCreate,
+    Item,
+    ItemCreate,
+    Note,
+    NoteCreate,
+    Tag,
+    TagCreate,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -66,3 +80,39 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+# ==================== Tag CRUD ====================
+def create_tag(*, session: Session, tag_in: TagCreate, owner_id: uuid.UUID) -> Tag:
+    db_tag = Tag.model_validate(tag_in, update={"owner_id": owner_id})
+    session.add(db_tag)
+    session.commit()
+    session.refresh(db_tag)
+    return db_tag
+
+
+# ==================== Contact CRUD ====================
+def create_contact(*, session: Session, contact_in: ContactCreate, owner_id: uuid.UUID) -> Contact:
+    db_contact = Contact.model_validate(contact_in, update={"owner_id": owner_id})
+    session.add(db_contact)
+    session.commit()
+    session.refresh(db_contact)
+    return db_contact
+
+
+# ==================== Event CRUD ====================
+def create_event(*, session: Session, event_in: EventCreate, owner_id: uuid.UUID) -> Event:
+    db_event = Event.model_validate(event_in, update={"owner_id": owner_id})
+    session.add(db_event)
+    session.commit()
+    session.refresh(db_event)
+    return db_event
+
+
+# ==================== Note CRUD ====================
+def create_note(*, session: Session, note_in: NoteCreate, owner_id: uuid.UUID) -> Note:
+    db_note = Note.model_validate(note_in, update={"owner_id": owner_id})
+    session.add(db_note)
+    session.commit()
+    session.refresh(db_note)
+    return db_note
